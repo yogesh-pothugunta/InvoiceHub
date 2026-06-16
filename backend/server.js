@@ -42,6 +42,7 @@ const authLimiter = rateLimit({
 app.use(cors({
   origin: [
     'https://invoice-hub-liard.vercel.app',
+    'https://invoice-5w6k1h79v-yogesh-pothuguntas-projects.vercel.app',
     'http://localhost:3000'
   ],
   credentials: true
