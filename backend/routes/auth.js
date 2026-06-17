@@ -43,12 +43,15 @@ router.post('/register', [
       await User.create({ name, email, password, otp, otpExpire });
     }
 
-    await sendOTPEmail(email, otp, name);
+    // ✅ Email background lo pampinchu — await ledu!
+    sendOTPEmail(email, otp, name).catch(err => console.error('Email error:', err));
 
+    // ✅ Venter response ichi user ni wait cheyykudadu
     res.status(201).json({
       message: 'Verification code sent to your email',
       email
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -107,6 +110,7 @@ router.post('/verify-otp', [
 });
 
 // @route   POST /api/auth/resend-otp
+// @route   POST /api/auth/resend-otp
 router.post('/resend-otp', [
   body('email').isEmail().withMessage('Valid email required')
 ], async (req, res) => {
@@ -127,7 +131,8 @@ router.post('/resend-otp', [
     user.otpExpire = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    await sendOTPEmail(email, otp, user.name);
+    // ✅ Background lo pampinchu
+    sendOTPEmail(email, otp, user.name).catch(err => console.error('Email error:', err));
 
     res.json({ message: 'Verification code resent successfully' });
   } catch (error) {
