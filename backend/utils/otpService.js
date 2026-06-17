@@ -4,31 +4,21 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-let transporter = null;
-
-const getTransporter = () => {
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      },
-      pool: true,
-      maxConnections: 5,
-      rateDelta: 20000,
-      rateLimit: 5
-    });
-  }
-  return transporter;
-};
-
 const sendOTPEmail = async (email, otp, name) => {
-  const transport = getTransporter();
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
+  });
 
-  await transport.sendMail({
+  await transporter.sendMail({
     from: process.env.EMAIL_FROM,
     to: email,
     subject: 'InvoiceHub — Email Verification Code',

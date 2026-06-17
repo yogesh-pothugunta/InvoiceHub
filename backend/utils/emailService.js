@@ -8,7 +8,10 @@ const createTransporter = () => {
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS
-    }
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
   });
 };
 
@@ -23,13 +26,11 @@ Please find attached Invoice #${invoice.invoiceNumber} for ${formatCurrency(invo
 
 Payment is due by ${formatDate(invoice.dueDate)}.
 
-${user.bankDetails?.bankName ? `
-Payment Details:
+${user.bankDetails?.bankName ? `Payment Details:
 Bank: ${user.bankDetails.bankName}
 A/C: ${user.bankDetails.accountNumber}
 IFSC: ${user.bankDetails.ifsc}
-${user.bankDetails.upiId ? 'UPI: ' + user.bankDetails.upiId : ''}
-` : ''}
+${user.bankDetails.upiId ? 'UPI: ' + user.bankDetails.upiId : ''}` : ''}
 
 For any queries, please contact us at ${user.email}.
 
@@ -38,8 +39,7 @@ Thank you for your business!
 Best regards,
 ${companyName}`;
 
-  const emailHTML = `
-<!DOCTYPE html>
+  const emailHTML = `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f5f5f5;">
