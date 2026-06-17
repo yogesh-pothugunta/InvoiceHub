@@ -67,6 +67,13 @@ mongoose.connect(process.env.MONGO_URI, {
   retryWrites: true,
   heartbeatFrequencyMS: 10000,
 })
+  .then(() => {
+    console.log('✅ MongoDB Connected');
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`🚀 InvoiceHub Server running on port ${PORT}`);
+      console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+    });
 
     // Keep alive - prevent Render cold start
     if (process.env.NODE_ENV === 'production') {
