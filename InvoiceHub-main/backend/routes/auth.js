@@ -43,14 +43,18 @@ router.post('/register', [
       await User.create({ name, email, password, otp, otpExpire });
     }
 
-    // ✅ Email background lo pampinchu — await ledu!
-    sendOTPEmail(email, otp, name).catch(err => console.error('Email error:', err));
-
-    // ✅ Venter response ichi user ni wait cheyykudadu
-    res.status(201).json({
-      message: 'Verification code sent to your email',
-      email
-    });
+   try {
+  await sendOTPEmail(email, otp, name);
+  return res.status(201).json({
+    message: 'Verification code sent to your email',
+    email
+  });
+} catch (error) {
+  console.error('Email error:', error);
+  return res.status(500).json({
+    message: 'Failed to send verification email'
+  });
+}
 
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -131,12 +135,23 @@ router.post('/resend-otp', [
     user.otpExpire = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    // ✅ Background lo pampinchu
-    sendOTPEmail(email, otp, user.name).catch(err => console.error('Email error:', err));
+   try {
+  await sendOTPEmail(email, otp, user.name);
 
-    res.json({ message: 'Verification code resent successfully' });
+  return res.json({
+    message: 'Verification code resent successfully'
+  });
+} catch (error) {
+  console.error('Email error:', error);
+
+  return res.status(500).json({
+    message: 'Failed to resend verification email'
+  });
+}
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: error.message
+    });
   }
 });
 

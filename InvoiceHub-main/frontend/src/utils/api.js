@@ -1,12 +1,16 @@
 import axios from 'axios';
 
-const API = axios.create({ 
-  baseURL: process.env.REACT_APP_API_URL || 'https://invoicehub-6hhp.onrender.com/api'
+const API = axios.create({
+  baseURL: 'http://localhost:5000/api'
 });
 
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem('ih_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   return config;
 });
 
@@ -18,6 +22,7 @@ API.interceptors.response.use(
       localStorage.removeItem('ih_user');
       window.location.href = '/login';
     }
+
     return Promise.reject(err);
   }
 );
@@ -38,10 +43,19 @@ export const invoiceAPI = {
   create: (data) => API.post('/invoices', data),
   update: (id, data) => API.put(`/invoices/${id}`, data),
   delete: (id) => API.delete(`/invoices/${id}`),
-  updateStatus: (id, data) => API.patch(`/invoices/${id}/status`, data),
-  downloadPDF: (id) => API.get(`/invoices/${id}/pdf`, { responseType: 'blob' }),
-  sendEmail: (id, data) => API.post(`/invoices/${id}/send-email`, data),
-  exportCSV: (params) => API.get('/invoices/export/csv', { params, responseType: 'blob' }),
+  updateStatus: (id, data) =>
+    API.patch(`/invoices/${id}/status`, data),
+  downloadPDF: (id) =>
+    API.get(`/invoices/${id}/pdf`, {
+      responseType: 'blob'
+    }),
+  sendEmail: (id, data) =>
+    API.post(`/invoices/${id}/send-email`, data),
+  exportCSV: (params) =>
+    API.get('/invoices/export/csv', {
+      params,
+      responseType: 'blob'
+    }),
 };
 
 export const clientAPI = {

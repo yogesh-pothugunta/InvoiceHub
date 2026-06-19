@@ -30,7 +30,12 @@ const authLimiter = rateLimit({
 });
 
 app.use(cors({
-  origin: ['http://localhost:3000', process.env.FRONTEND_URL, /\.vercel\.app$/],
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    process.env.FRONTEND_URL
+  ],
   credentials: true
 }));
 
