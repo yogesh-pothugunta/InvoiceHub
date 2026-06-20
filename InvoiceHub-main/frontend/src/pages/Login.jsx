@@ -22,7 +22,6 @@ export default function Login() {
         toast.success('Welcome back!');
         navigate('/dashboard');
       } else {
-        // Register → OTP page కి వెళ్తుంది
         await authAPI.register({
           name: form.name,
           email: form.email,
@@ -33,12 +32,18 @@ export default function Login() {
         navigate('/verify-otp', { state: { email: form.email } });
       }
     } catch (err) {
+      console.error('Full error:', err);
+      console.error('Response:', err.response);
       const data = err.response?.data;
       if (data?.needsVerification) {
         toast.error('Please verify your email first');
         navigate('/verify-otp', { state: { email: data.email } });
       } else {
-        toast.error(data?.message || 'Something went wrong');
+        toast.error(
+          data?.message || 
+          err.message || 
+          `Error: ${err.response?.status} - ${JSON.stringify(data)}`
+        );
       }
     } finally {
       setLoading(false);
