@@ -13,7 +13,9 @@ const dashboardRoutes = require('./routes/dashboard');
 
 const app = express();
 
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+}));
 app.use(morgan('dev'));
 
 const limiter = rateLimit({
@@ -30,12 +32,9 @@ const authLimiter = rateLimit({
 });
 
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'https://invoice-hub-liard.vercel.app'
-  ],
-  credentials: true
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 app.use(express.json({ limit: '10mb' }));
@@ -79,7 +78,6 @@ mongoose.connect(process.env.MONGO_URI, {
       console.log(`📊 Environment: ${process.env.NODE_ENV}`);
     });
 
-    // Keep alive - prevent Render cold start
     if (process.env.NODE_ENV === 'production') {
       setInterval(() => {
         const https = require('https');
