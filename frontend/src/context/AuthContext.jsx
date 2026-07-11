@@ -11,13 +11,21 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('ih_token');
     const stored = localStorage.getItem('ih_user');
     if (token && stored) {
-      setUser(JSON.parse(stored));
-      authAPI.getMe().then(res => {
-        setUser(res.data.user);
-        localStorage.setItem('ih_user', JSON.stringify(res.data.user));
-      }).catch(() => logout());
+      try { setUser(JSON.parse(stored)); } catch {}
+      authAPI.getMe()
+        .then(res => {
+          setUser(res.data.user);
+          localStorage.setItem('ih_user', JSON.stringify(res.data.user));
+        })
+        .catch(() => {
+          localStorage.removeItem('ih_token');
+          localStorage.removeItem('ih_user');
+          setUser(null);
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = async (email, password) => {
@@ -30,9 +38,13 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (data) => {
     const res = await authAPI.register(data);
-    localStorage.setItem('ih_token', res.data.token);
-    localStorage.setItem('ih_user', JSON.stringify(res.data.user));
-    setUser(res.data.user);
+    const token = res.data.token;
+    const userObj = res.data.user;
+    if (token) {
+      localStorage.setItem('ih_token', token);
+      localStorage.setItem('ih_user', JSON.stringify(userObj));
+      setUser(userObj);
+    }
     return res.data;
   };
 

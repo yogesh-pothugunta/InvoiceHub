@@ -29,8 +29,9 @@ export default function Login() {
           password: form.password,
           companyName: form.companyName
         });
-        toast.success('Verification code sent! Please check your email.');
-        navigate('/verify-otp', { state: { email: form.email } });
+        toast.success('Account created! Welcome!');
+        navigate('/dashboard');
+       
       }
     } catch (err) {
       const data = err.response?.data;

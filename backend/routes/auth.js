@@ -13,6 +13,7 @@ const generateToken = (id) => {
 };
 
 // @route   POST /api/auth/register
+// Register — OTP lekundane
 router.post('/register', [
   body('name').notEmpty().withMessage('Name is required'),
   body('email').isEmail().withMessage('Valid email required'),
@@ -24,34 +25,36 @@ router.post('/register', [
   }
 
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, companyName } = req.body;
 
     const existingUser = await User.findOne({ email });
-
     if (existingUser && existingUser.isVerified) {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
-    const otp = generateOTP();
-    const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
-
-    if (existingUser && !existingUser.isVerified) {
-      existingUser.otp = otp;
-      existingUser.otpExpire = otpExpire;
-      await existingUser.save();
-    } else {
-      await User.create({ name, email, password, otp, otpExpire });
+    if (existingUser) {
+      await User.findByIdAndDelete(existingUser._id);
     }
 
-    // ✅ Email background lo pampinchu — await ledu!
-    sendOTPEmail(email, otp, name).catch(err => console.error('Email error:', err));
-
-    // ✅ Venter response ichi user ni wait cheyykudadu
-    res.status(201).json({
-      message: 'Verification code sent to your email',
-      email
+    const user = await User.create({
+      name,
+      email,
+      password,
+      isVerified: true,
+      company: { name: companyName || '' }
     });
 
+    const token = generateToken(user._id);
+
+    res.status(201).json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        company: user.company
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
