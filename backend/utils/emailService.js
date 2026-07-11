@@ -2,16 +2,16 @@ const nodemailer = require('nodemailer');
 
 const createTransporter = () => {
   return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT) || 587,
-    secure: false,
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS
     },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 30000,
   });
 };
 
@@ -41,33 +41,23 @@ ${companyName}`;
 
   const emailHTML = `<!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f5f5f5;">
   <div style="max-width:600px;margin:30px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
     <div style="background:#185FA5;padding:28px 32px;text-align:center;">
-      <h1 style="color:#fff;margin:0;font-size:22px;font-weight:500;">Invoice from ${companyName}</h1>
+      <h1 style="color:#fff;margin:0;font-size:22px;">Invoice from ${companyName}</h1>
     </div>
     <div style="padding:32px;">
-      <p style="color:#333;font-size:15px;margin-bottom:20px;">Dear <strong>${invoice.clientSnapshot.name}</strong>,</p>
+      <p style="color:#333;font-size:15px;">Dear <strong>${invoice.clientSnapshot.name}</strong>,</p>
       <div style="background:#E6F1FB;border-left:4px solid #185FA5;padding:16px 20px;border-radius:4px;margin-bottom:24px;">
-        <p style="margin:0;color:#185FA5;font-size:14px;"><strong>Invoice #${invoice.invoiceNumber}</strong></p>
+        <p style="margin:0;color:#185FA5;"><strong>Invoice #${invoice.invoiceNumber}</strong></p>
         <p style="margin:4px 0 0;color:#555;font-size:24px;font-weight:700;">${formatCurrency(invoice.total, invoice.currency)}</p>
         <p style="margin:4px 0 0;color:#888;font-size:12px;">Due by ${formatDate(invoice.dueDate)}</p>
       </div>
       <p style="color:#555;font-size:14px;line-height:1.7;white-space:pre-line;">${customMessage || defaultMessage}</p>
-      ${user.bankDetails?.bankName ? `
-      <div style="background:#f9f9f9;border-radius:6px;padding:16px 20px;margin-top:20px;">
-        <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:1px;">Payment Details</p>
-        <p style="margin:0;font-size:13px;color:#555;line-height:1.8;">
-          Bank: ${user.bankDetails.bankName}<br>
-          A/C: ${user.bankDetails.accountNumber}<br>
-          IFSC: ${user.bankDetails.ifsc}
-          ${user.bankDetails.upiId ? '<br>UPI: ' + user.bankDetails.upiId : ''}
-        </p>
-      </div>` : ''}
     </div>
     <div style="background:#f5f5f5;padding:16px 32px;text-align:center;font-size:12px;color:#aaa;">
-      ${companyName} &nbsp;|&nbsp; ${user.email} &nbsp;|&nbsp; Powered by InvoiceHub
+      ${companyName} | ${user.email} | Powered by InvoiceHub
     </div>
   </div>
 </body>
@@ -76,11 +66,11 @@ ${companyName}`;
   const mailOptions = {
     from: process.env.EMAIL_FROM || `${companyName} <${process.env.EMAIL_USER}>`,
     to: invoice.clientSnapshot.email,
-    subject: `Invoice #${invoice.invoiceNumber} from ${companyName} — ${formatCurrency(invoice.total, invoice.currency)} due ${formatDate(invoice.dueDate)}`,
+    subject: `Invoice #${invoice.invoiceNumber} from ${companyName}`,
     text: customMessage || defaultMessage,
     html: emailHTML,
     attachments: [{
-      filename: `${invoice.invoiceNumber}-${invoice.clientSnapshot.name.replace(/\s+/g, '-')}.pdf`,
+      filename: `${invoice.invoiceNumber}.pdf`,
       content: pdfBuffer,
       contentType: 'application/pdf'
     }]
