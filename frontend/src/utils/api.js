@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 const API = axios.create({ 
-  baseURL: process.env.REACT_APP_API_URL || 'https://invoicehub-6hhp.onrender.com/api'
+  baseURL: process.env.NODE_ENV === 'production' 
+    ? 'https://invoicehub-6hhp.onrender.com/api'
+    : 'http://localhost:5000/api'
 });
 
 API.interceptors.request.use((config) => {
