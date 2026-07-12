@@ -3,7 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { invoiceAPI } from '../utils/api';
 import toast from 'react-hot-toast';
 
-const STATUS_COLORS = { paid: 'bg-green-100 text-green-700', sent: 'bg-blue-100 text-blue-700', draft: 'bg-gray-100 text-gray-600', overdue: 'bg-red-100 text-red-700', cancelled: 'bg-gray-100 text-gray-400' };
+const statusColors = {
+  paid: { bg: 'rgba(34,197,94,0.1)', color: '#4ade80', border: 'rgba(34,197,94,0.2)' },
+  sent: { bg: 'rgba(99,102,241,0.1)', color: '#818cf8', border: 'rgba(99,102,241,0.2)' },
+  draft: { bg: 'rgba(100,116,139,0.1)', color: '#64748b', border: 'rgba(100,116,139,0.2)' },
+  overdue: { bg: 'rgba(239,68,68,0.1)', color: '#f87171', border: 'rgba(239,68,68,0.2)' },
+  cancelled: { bg: 'rgba(100,116,139,0.1)', color: '#64748b', border: 'rgba(100,116,139,0.2)' },
+};
+
+const Pill = ({ status }) => {
+  const s = statusColors[status] || statusColors.draft;
+  return <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '500', background: s.bg, color: s.color, border: `1px solid ${s.border}` }}>{status?.charAt(0).toUpperCase() + status?.slice(1)}</span>;
+};
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState([]);
@@ -29,11 +40,8 @@ export default function Invoices() {
   const handleDelete = async (id, e) => {
     e.stopPropagation();
     if (!window.confirm('Delete this invoice?')) return;
-    try {
-      await invoiceAPI.delete(id);
-      toast.success('Invoice deleted');
-      load();
-    } catch (err) { toast.error(err.response?.data?.message || 'Cannot delete'); }
+    try { await invoiceAPI.delete(id); toast.success('Deleted'); load(); }
+    catch (err) { toast.error(err.response?.data?.message || 'Cannot delete'); }
   };
 
   const handleDownloadPDF = async (id, num, e) => {
@@ -44,7 +52,7 @@ export default function Invoices() {
       const a = document.createElement('a'); a.href = url; a.download = `${num}.pdf`; a.click();
       URL.revokeObjectURL(url);
       toast.success('PDF downloaded!');
-    } catch { toast.error('PDF generation failed'); }
+    } catch { toast.error('PDF failed'); }
   };
 
   const handleExportCSV = async () => {
@@ -52,34 +60,31 @@ export default function Invoices() {
       const res = await invoiceAPI.exportCSV({ status });
       const url = URL.createObjectURL(new Blob([res.data]));
       const a = document.createElement('a'); a.href = url; a.download = 'invoices.csv'; a.click();
-      toast.success('CSV exported!');
+      toast.success('Exported!');
     } catch { toast.error('Export failed'); }
   };
 
+  const inputStyle = { padding: '9px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#e2e8f0', fontSize: '13px', fontFamily: 'Inter, sans-serif', outline: 'none' };
+
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+    <div style={{ padding: '28px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Invoices</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{pagination.total || 0} total invoices</p>
+          <h1 style={{ fontSize: '22px', fontWeight: '600', color: '#f1f5f9', marginBottom: '4px' }}>Invoices</h1>
+          <p style={{ fontSize: '13px', color: '#475569' }}>{pagination.total || 0} total invoices</p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={handleExportCSV} className="border border-gray-200 text-gray-600 px-3 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-            📥 Export CSV
-          </button>
-          <button onClick={() => navigate('/invoices/new')} className="bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-800">
-            + New Invoice
-          </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={handleExportCSV} style={{ ...inputStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>📥 Export CSV</button>
+          <button onClick={() => navigate('/invoices/new')} style={{ padding: '9px 18px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #6366f1, #7c3aed)', color: '#fff', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'Inter, sans-serif', boxShadow: '0 4px 15px rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', gap: '6px' }}>✦ New Invoice</button>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3 mb-4">
-        <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
-          placeholder="Search by client or invoice #..."
-          className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        <select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}
-          className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
+        <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search by client or invoice #..." style={{ ...inputStyle, flex: 1 }} />
+        <select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} style={{ ...inputStyle, cursor: 'pointer' }}>
           <option value="">All Status</option>
           <option value="draft">Draft</option>
           <option value="sent">Sent</option>
@@ -90,40 +95,41 @@ export default function Invoices() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
+      <div style={{ background: '#0d0e18', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
           <thead>
-            <tr className="border-b border-gray-100 bg-gray-50">
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Invoice #</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Client</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Amount</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Issue Date</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Due Date</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Status</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Actions</th>
+            <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+              {['Invoice #', 'Client', 'Amount', 'Issue Date', 'Due Date', 'Status', 'Actions'].map(h => (
+                <th key={h} style={{ textAlign: 'left', padding: '12px 16px', fontSize: '11px', color: '#334155', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>{h}</th>
+              ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
-            {loading && <tr><td colSpan={7} className="py-10 text-center text-gray-400">Loading...</td></tr>}
+          <tbody>
+            {loading && <tr><td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#334155' }}>Loading...</td></tr>}
             {!loading && invoices.length === 0 && (
-              <tr><td colSpan={7} className="py-10 text-center text-gray-400">No invoices found. <button onClick={() => navigate('/invoices/new')} className="text-blue-600 hover:underline">Create one!</button></td></tr>
+              <tr><td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#334155', fontSize: '13px' }}>
+                No invoices found. <span onClick={() => navigate('/invoices/new')} style={{ color: '#6366f1', cursor: 'pointer' }}>Create one!</span>
+              </td></tr>
             )}
             {invoices.map(inv => (
-              <tr key={inv._id} onClick={() => navigate(`/invoices/${inv._id}`)} className="hover:bg-gray-50 cursor-pointer transition-colors">
-                <td className="px-4 py-3 font-medium text-blue-700">{inv.invoiceNumber}</td>
-                <td className="px-4 py-3">
-                  <div className="font-medium text-gray-800">{inv.clientSnapshot.name}</div>
-                  <div className="text-xs text-gray-400">{inv.clientSnapshot.email}</div>
+              <tr key={inv._id} onClick={() => navigate(`/invoices/${inv._id}`)}
+                style={{ cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <td style={{ padding: '14px 16px', fontWeight: '500', color: '#818cf8' }}>{inv.invoiceNumber}</td>
+                <td style={{ padding: '14px 16px' }}>
+                  <div style={{ fontWeight: '500', color: '#e2e8f0' }}>{inv.clientSnapshot?.name}</div>
+                  <div style={{ fontSize: '11px', color: '#334155', marginTop: '2px' }}>{inv.clientSnapshot?.email}</div>
                 </td>
-                <td className="px-4 py-3 font-semibold text-gray-800">₹{inv.total.toLocaleString('en-IN')}</td>
-                <td className="px-4 py-3 text-gray-500">{new Date(inv.issueDate).toLocaleDateString('en-IN')}</td>
-                <td className="px-4 py-3 text-gray-500">{new Date(inv.dueDate).toLocaleDateString('en-IN')}</td>
-                <td className="px-4 py-3"><span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_COLORS[inv.status]}`}>{inv.status}</span></td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                    <button onClick={(e) => handleDownloadPDF(inv._id, inv.invoiceNumber, e)} className="p-1.5 rounded hover:bg-gray-100 text-gray-500" title="Download PDF">📄</button>
-                    <button onClick={(e) => { e.stopPropagation(); navigate(`/invoices/${inv._id}/edit`); }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500" title="Edit">✏️</button>
-                    <button onClick={(e) => handleDelete(inv._id, e)} className="p-1.5 rounded hover:bg-red-50 text-red-400" title="Delete">🗑️</button>
+                <td style={{ padding: '14px 16px', fontWeight: '600', color: '#f1f5f9' }}>₹{inv.total?.toLocaleString('en-IN')}</td>
+                <td style={{ padding: '14px 16px', color: '#475569' }}>{new Date(inv.issueDate).toLocaleDateString('en-IN')}</td>
+                <td style={{ padding: '14px 16px', color: '#475569' }}>{new Date(inv.dueDate).toLocaleDateString('en-IN')}</td>
+                <td style={{ padding: '14px 16px' }}><Pill status={inv.status} /></td>
+                <td style={{ padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', gap: '6px' }} onClick={e => e.stopPropagation()}>
+                    <button onClick={e => handleDownloadPDF(inv._id, inv.invoiceNumber, e)} title="PDF" style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📄</button>
+                    <button onClick={e => { e.stopPropagation(); navigate(`/invoices/${inv._id}/edit`); }} title="Edit" style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✏️</button>
+                    <button onClick={e => handleDelete(inv._id, e)} title="Delete" style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.06)', color: '#f87171', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🗑️</button>
                   </div>
                 </td>
               </tr>
@@ -131,13 +137,12 @@ export default function Invoices() {
           </tbody>
         </table>
 
-        {/* Pagination */}
         {pagination.pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-            <span className="text-xs text-gray-500">Page {pagination.page} of {pagination.pages}</span>
-            <div className="flex gap-2">
-              <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-3 py-1 text-xs border border-gray-200 rounded disabled:opacity-40 hover:bg-gray-50">← Prev</button>
-              <button disabled={page === pagination.pages} onClick={() => setPage(p => p + 1)} className="px-3 py-1 text-xs border border-gray-200 rounded disabled:opacity-40 hover:bg-gray-50">Next →</button>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <span style={{ fontSize: '12px', color: '#334155' }}>Page {pagination.page} of {pagination.pages}</span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button disabled={page === 1} onClick={() => setPage(p => p - 1)} style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: page === 1 ? '#334155' : '#94a3b8', cursor: page === 1 ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif' }}>← Prev</button>
+              <button disabled={page === pagination.pages} onClick={() => setPage(p => p + 1)} style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: page === pagination.pages ? '#334155' : '#94a3b8', cursor: page === pagination.pages ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif' }}>Next →</button>
             </div>
           </div>
         )}
