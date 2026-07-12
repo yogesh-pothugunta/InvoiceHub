@@ -2,7 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  -webkit-font-smoothing: antialiased;
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    background: #020617;
+    color: #f8fafc;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    min-height: 100vh;
+    background: #020617;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+.glass {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,.06);
+}
+
+.page {
+  padding: 32px;
+}
+
+.card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 22px;
+  padding: 24px;
+  transition: .25s;
+}
+
+.card:hover {
+  border-color: rgba(99,102,241,.45);
+  transform: translateY(-2px);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg,#818CF8,#6366F1);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.shadow-glow{
+    box-shadow:0 0 30px rgba(99,102,241,.20);
 }
