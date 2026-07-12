@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { clientAPI } from '../utils/api';
 import toast from 'react-hot-toast';
 
+const inputStyle = { width: '100%', padding: '9px 12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#e2e8f0', fontSize: '13px', fontFamily: 'Inter, sans-serif', outline: 'none' };
+const labelStyle = { display: 'block', fontSize: '11px', fontWeight: '500', color: '#475569', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.05em' };
 const empty = { name: '', email: '', phone: '', company: '', gst: '', address: { street: '', city: '', state: '', pincode: '', country: 'India' }, notes: '' };
 
 export default function Clients() {
@@ -38,78 +40,90 @@ export default function Clients() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this client?')) return;
-    try { await clientAPI.delete(id); toast.success('Client removed'); load(); }
+    try { await clientAPI.delete(id); toast.success('Deleted'); load(); }
     catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
   };
 
   const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const setAddr = (k, v) => setForm(f => ({ ...f, address: { ...f.address, [k]: v } }));
 
+  const avatarColors = ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+    <div style={{ padding: '28px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Clients</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{clients.length} clients</p>
+          <h1 style={{ fontSize: '22px', fontWeight: '600', color: '#f1f5f9', marginBottom: '4px' }}>Clients</h1>
+          <p style={{ fontSize: '13px', color: '#475569' }}>{clients.length} clients</p>
         </div>
-        <button onClick={openAdd} className="bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-800">+ Add Client</button>
+        <button onClick={openAdd} style={{ padding: '9px 18px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #6366f1, #7c3aed)', color: '#fff', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'Inter, sans-serif', boxShadow: '0 4px 15px rgba(99,102,241,0.3)' }}>
+          + Add Client
+        </button>
       </div>
 
       <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients..."
-        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        style={{ ...inputStyle, width: '100%', marginBottom: '20px', maxWidth: '400px' }} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {loading && <p className="text-gray-400 text-sm col-span-3">Loading...</p>}
-        {!loading && clients.length === 0 && <p className="text-gray-400 text-sm col-span-3 text-center py-10">No clients yet. Add your first client!</p>}
-        {clients.map(c => (
-          <div key={c._id} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between mb-3">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold text-sm flex-shrink-0">
+      {loading && <div style={{ textAlign: 'center', color: '#334155', padding: '40px' }}>Loading...</div>}
+      {!loading && clients.length === 0 && <div style={{ textAlign: 'center', color: '#334155', padding: '40px', fontSize: '13px' }}>No clients yet. Add your first client!</div>}
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+        {clients.map((c, i) => (
+          <div key={c._id} style={{ background: '#0d0e18', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)', padding: '20px', transition: 'border-color 0.2s', cursor: 'default' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '14px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: avatarColors[i % avatarColors.length], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '600', color: '#fff' }}>
                 {c.name[0].toUpperCase()}
               </div>
-              <div className="flex gap-1">
-                <button onClick={() => openEdit(c)} className="p-1.5 rounded hover:bg-gray-100 text-gray-400 text-sm">✏️</button>
-                <button onClick={() => handleDelete(c._id)} className="p-1.5 rounded hover:bg-red-50 text-red-400 text-sm">🗑️</button>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button onClick={() => openEdit(c)} style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✏️</button>
+                <button onClick={() => handleDelete(c._id)} style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.06)', color: '#f87171', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🗑️</button>
               </div>
             </div>
-            <h3 className="font-semibold text-gray-900">{c.name}</h3>
-            {c.company && <p className="text-sm text-gray-500">{c.company}</p>}
-            <p className="text-sm text-gray-500 mt-1">{c.email}</p>
-            {c.phone && <p className="text-sm text-gray-400">{c.phone}</p>}
-            <div className="flex gap-4 mt-3 pt-3 border-t border-gray-50 text-xs text-gray-400">
-              <span>📄 {c.totalInvoices} invoices</span>
-              <span>💰 ₹{(c.totalAmount||0).toLocaleString('en-IN')}</span>
+            <div style={{ fontSize: '15px', fontWeight: '500', color: '#f1f5f9', marginBottom: '2px' }}>{c.name}</div>
+            {c.company && <div style={{ fontSize: '12px', color: '#475569', marginBottom: '2px' }}>{c.company}</div>}
+            <div style={{ fontSize: '12px', color: '#475569' }}>{c.email}</div>
+            {c.phone && <div style={{ fontSize: '12px', color: '#334155', marginTop: '2px' }}>{c.phone}</div>}
+            <div style={{ display: 'flex', gap: '16px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: '12px', color: '#334155' }}>
+              <span>📄 {c.totalInvoices || 0} invoices</span>
+              <span>💰 ₹{(c.totalAmount || 0).toLocaleString('en-IN')}</span>
             </div>
           </div>
         ))}
       </div>
 
+      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-semibold text-gray-900 mb-5">{editing ? 'Edit Client' : 'Add Client'}</h2>
-            <div className="grid grid-cols-2 gap-3">
-              {[['name','Name *'],['email','Email *'],['phone','Phone'],['company','Company'],['gst','GST Number']].map(([k,l]) => (
-                <div key={k} className={k==='name'||k==='email' ? 'col-span-2' : ''}>
-                  <label className="block text-xs text-gray-500 mb-1">{l}</label>
-                  <input value={form[k]||''} onChange={e => setF(k, e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '20px', backdropFilter: 'blur(4px)' }}>
+          <div style={{ background: '#0d0e18', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', padding: '28px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 25px 80px rgba(0,0,0,0.6)' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#f1f5f9', marginBottom: '20px' }}>{editing ? 'Edit Client' : 'Add Client'}</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              {[['name', 'Name *'], ['email', 'Email *'], ['phone', 'Phone'], ['company', 'Company'], ['gst', 'GST Number']].map(([k, l]) => (
+                <div key={k} style={{ gridColumn: k === 'name' || k === 'email' ? '1/-1' : 'auto' }}>
+                  <label style={labelStyle}>{l}</label>
+                  <input value={form[k] || ''} onChange={e => setF(k, e.target.value)} style={inputStyle} />
                 </div>
               ))}
-              <div className="col-span-2"><p className="text-xs font-medium text-gray-500 mb-2 mt-1">Address</p></div>
-              {[['street','Street','col-span-2'],['city','City',''],['state','State',''],['pincode','Pincode',''],['country','Country','']].map(([k,l,cls]) => (
-                <div key={k} className={cls || ''}>
-                  <label className="block text-xs text-gray-500 mb-1">{l}</label>
-                  <input value={form.address?.[k]||''} onChange={e => setAddr(k, e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <div style={{ gridColumn: '1/-1' }}>
+                <label style={{ ...labelStyle, marginTop: '4px' }}>Address</label>
+              </div>
+              {[['street', 'Street', '1/-1'], ['city', 'City', ''], ['state', 'State', ''], ['pincode', 'Pincode', ''], ['country', 'Country', '']].map(([k, l, col]) => (
+                <div key={k} style={{ gridColumn: col || 'auto' }}>
+                  <label style={labelStyle}>{l}</label>
+                  <input value={form.address?.[k] || ''} onChange={e => setAddr(k, e.target.value)} style={inputStyle} />
                 </div>
               ))}
-              <div className="col-span-2">
-                <label className="block text-xs text-gray-500 mb-1">Notes</label>
-                <textarea value={form.notes||''} onChange={e => setF('notes', e.target.value)} rows={2} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+              <div style={{ gridColumn: '1/-1' }}>
+                <label style={labelStyle}>Notes</label>
+                <textarea value={form.notes || ''} onChange={e => setF('notes', e.target.value)} rows={2} style={{ ...inputStyle, resize: 'none' }} />
               </div>
             </div>
-            <div className="flex gap-3 mt-5">
-              <button onClick={() => setShowModal(false)} className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-lg text-sm hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSave} disabled={saving} className="flex-1 bg-blue-700 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-800 disabled:opacity-60">{saving ? 'Saving...' : 'Save Client'}</button>
+            <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+              <button onClick={() => setShowModal(false)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: '#64748b', fontSize: '13px', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>Cancel</button>
+              <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #6366f1, #7c3aed)', color: '#fff', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
+                {saving ? 'Saving...' : 'Save Client'}
+              </button>
             </div>
           </div>
         </div>
