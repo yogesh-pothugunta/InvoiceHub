@@ -5,11 +5,11 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import toast from 'react-hot-toast';
 
 const StatCard = ({ label, value, sub, color, icon }) => (
-  <div style={{ background: '#0d0e18', borderRadius: '14px', padding: '20px', border: '1px solid rgba(255,255,255,0.06)', position: 'relative', overflow: 'hidden' }}>
-    <div style={{ position: 'absolute', top: 0, right: 0, width: '80px', height: '80px', background: color, borderRadius: '0 14px 0 80px', opacity: 0.08 }} />
-    <div style={{ fontSize: '20px', marginBottom: '10px' }}>{icon}</div>
-    <div style={{ fontSize: '11px', color: '#475569', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>{label}</div>
-    <div style={{ fontSize: '24px', fontWeight: '600', color: '#f1f5f9', marginBottom: '6px' }}>{value}</div>
+  <div style={{ background: '#0d0e18', borderRadius: '14px', padding: '20px', border: `1px solid ${color}40`, position: 'relative', overflow: 'hidden', boxShadow: `0 4px 20px ${color}20` }}>
+    <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', background: color, borderRadius: '50%', opacity: 0.15 }} />
+    <div style={{ fontSize: '24px', marginBottom: '10px' }}>{icon}</div>
+    <div style={{ fontSize: '11px', color: '#475569', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>{label}</div>
+    <div style={{ fontSize: '26px', fontWeight: '700', color: '#f1f5f9', marginBottom: '6px' }}>{value}</div>
     {sub && <div style={{ fontSize: '11px', color: '#334155' }}>{sub}</div>}
   </div>
 );
