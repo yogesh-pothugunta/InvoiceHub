@@ -1,4 +1,4 @@
-import { useState } from 'react';
+<div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'linear-gradient(135deg, #0a0b0f 0%, #0f1117 50%, #0a0b1a 100%)', minHeight: '100vh', minWidth: '100vw' }}import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../utils/api';
