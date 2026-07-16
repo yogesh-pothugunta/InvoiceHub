@@ -42,15 +42,23 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+
 const paymentRoutes = require('./routes/payments');
 app.use('/api/payments', paymentRoutes);
 
 app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'InvoiceHub API is running!', timestamp: new Date() });
+  res.json({
+    success: true,
+    message: 'InvoiceHub API is running!',
+    timestamp: new Date()
+  });
 });
 
 app.use((req, res) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
+  res.status(404).json({
+    success: false,
+    message: 'Route not found'
+  });
 });
 
 app.use((err, req, res, next) => {
@@ -71,7 +79,20 @@ mongoose.connect(process.env.MONGO_URI, {
 })
   .then(() => {
     console.log('✅ MongoDB Connected');
+
+    // Run recurring invoices check every day at midnight
+    const { processRecurringInvoices } = require('./utils/recurringJob');
+
+    setInterval(async () => {
+      const now = new Date();
+
+      if (now.getHours() === 0 && now.getMinutes() === 0) {
+        await processRecurringInvoices();
+      }
+    }, 60 * 1000); // Check every minute
+
     const PORT = process.env.PORT || 5000;
+
     app.listen(PORT, () => {
       console.log(`🚀 InvoiceHub Server running on port ${PORT}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV}`);
@@ -81,9 +102,13 @@ mongoose.connect(process.env.MONGO_URI, {
     if (process.env.NODE_ENV === 'production') {
       setInterval(() => {
         const https = require('https');
-        https.get('https://invoicehub-backend-7smj.onrender.com/api/health', (res) => {
-          console.log(`Keep alive ping: ${res.statusCode}`);
-        }).on('error', () => {});
+
+        https.get(
+          'https://invoicehub-backend-7smj.onrender.com/api/health',
+          (res) => {
+            console.log(`Keep alive ping: ${res.statusCode}`);
+          }
+        ).on('error', () => {});
       }, 14 * 60 * 1000);
     }
 
