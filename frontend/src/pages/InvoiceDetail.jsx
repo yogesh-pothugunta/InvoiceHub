@@ -119,6 +119,28 @@ export default function InvoiceDetail() {
           <button onClick={() => navigate(`/invoices/${id}/edit`)} className="border border-gray-200 text-gray-600 px-3 py-2 rounded-lg text-sm hover:bg-gray-50">✏️ Edit</button>
           <button onClick={handleDownloadPDF} className="border border-gray-200 text-gray-600 px-3 py-2 rounded-lg text-sm hover:bg-gray-50">📄 PDF</button>
           <button onClick={() => setShowEmailModal(true)} className="bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-800">📧 Send Email</button>
+          {invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+  <button
+    onClick={handlePayNow}
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      padding: '9px 18px',
+      borderRadius: '10px',
+      border: 'none',
+      background: 'linear-gradient(135deg, #10b981, #059669)',
+      color: '#fff',
+      fontSize: '13px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      fontFamily: 'Inter, sans-serif',
+      boxShadow: '0 4px 15px rgba(16,185,129,0.3)',
+    }}
+  >
+    💳 Pay Now
+  </button>
+)}
         </div>
       </div>
 
