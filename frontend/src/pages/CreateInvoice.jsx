@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { invoiceAPI, clientAPI } from '../utils/api';
@@ -17,11 +18,37 @@ export default function CreateInvoice() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedClient, setSelectedClient] = useState('');
-  const [form, setForm] = useState({ issueDate: today, dueDate: future30, taxRate: user?.defaultTax || 18, currency: user?.currency || '₹ INR', status: 'draft', notes: '', terms: 'Payment due within 30 days.' });
-  const [clientSnap, setClientSnap] = useState({ name: '', email: '', phone: '', company: '', gst: '', address: '' });
-  const [items, setItems] = useState([{ description: '', quantity: 1, rate: 0 }]);
 
-  useEffect(() => { clientAPI.getAll({ limit: 100 }).then(res => setClients(res.data.data)).catch(() => {}); }, []);
+  const [form, setForm] = useState({
+    issueDate: today,
+    dueDate: future30,
+    taxRate: user?.defaultTax || 18,
+    currency: user?.currency || '₹ INR',
+    status: 'draft',
+    notes: '',
+    terms: 'Payment due within 30 days.',
+    isRecurring: false,
+    recurringInterval: 'monthly'
+  });
+
+  const [clientSnap, setClientSnap] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    gst: '',
+    address: ''
+  });
+
+  const [items, setItems] = useState([
+    { description: '', quantity: 1, rate: 0 }
+  ]);
+
+  useEffect(() => {
+    clientAPI.getAll({ limit: 100 })
+      .then(res => setClients(res.data.data))
+      .catch(() => {});
+  }, []);
 
   const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const setCS = (k, v) => setClientSnap(s => ({ ...s, [k]: v }));
@@ -29,30 +56,92 @@ export default function CreateInvoice() {
   const handleClientSelect = (id) => {
     setSelectedClient(id);
     const c = clients.find(c => c._id === id);
-    if (c) setClientSnap({ name: c.name, email: c.email, phone: c.phone || '', company: c.company || '', gst: c.gst || '', address: [c.address?.street, c.address?.city, c.address?.state, c.address?.pincode].filter(Boolean).join(', ') });
+
+    if (c) {
+      setClientSnap({
+        name: c.name,
+        email: c.email,
+        phone: c.phone || '',
+        company: c.company || '',
+        gst: c.gst || '',
+        address: [
+          c.address?.street,
+          c.address?.city,
+          c.address?.state,
+          c.address?.pincode
+        ].filter(Boolean).join(', ')
+      });
+    }
   };
 
-  const setItem = (idx, k, v) => setItems(items => items.map((it, i) => i === idx ? { ...it, [k]: v } : it));
-  const addItem = () => setItems(i => [...i, { description: '', quantity: 1, rate: 0 }]);
-  const removeItem = (idx) => setItems(i => i.filter((_, j) => j !== idx));
+  const setItem = (idx, k, v) =>
+    setItems(items =>
+      items.map((it, i) =>
+        i === idx ? { ...it, [k]: v } : it
+      )
+    );
 
-  const subtotal = items.reduce((s, it) => s + (parseFloat(it.quantity) || 0) * (parseFloat(it.rate) || 0), 0);
-  const taxAmount = subtotal * (parseFloat(form.taxRate) || 0) / 100;
+  const addItem = () =>
+    setItems(i => [
+      ...i,
+      { description: '', quantity: 1, rate: 0 }
+    ]);
+
+  const removeItem = (idx) =>
+    setItems(i => i.filter((_, j) => j !== idx));
+
+  const subtotal = items.reduce(
+    (s, it) =>
+      s +
+      (parseFloat(it.quantity) || 0) *
+      (parseFloat(it.rate) || 0),
+    0
+  );
+
+  const taxAmount =
+    subtotal * (parseFloat(form.taxRate) || 0) / 100;
+
   const total = subtotal + taxAmount;
   const sym = form.currency.split(' ')[0];
 
   const handleSubmit = async (status) => {
-    if (!clientSnap.name || !clientSnap.email) return toast.error('Client name and email required');
-    if (items.every(it => !it.description)) return toast.error('Add at least one item');
-    setLoading(true);
-    try {
-      await invoiceAPI.create({ clientId: selectedClient || undefined, clientSnapshot: clientSnap, items: items.filter(it => it.description), dueDate: form.dueDate, issueDate: form.issueDate, taxRate: parseFloat(form.taxRate), currency: form.currency, notes: form.notes, terms: form.terms, status });
-      toast.success(status === 'draft' ? 'Saved as draft!' : 'Invoice created!');
-      navigate('/invoices');
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
-    finally { setLoading(false); }
-  };
+    if (!clientSnap.name || !clientSnap.email)
+      return toast.error('Client name and email required');
 
+    if (items.every(it => !it.description))
+      return toast.error('Add at least one item');
+
+    setLoading(true);
+
+    try {
+      await invoiceAPI.create({
+        clientId: selectedClient || undefined,
+        clientSnapshot: clientSnap,
+        items: items.filter(it => it.description),
+        dueDate: form.dueDate,
+        issueDate: form.issueDate,
+        taxRate: parseFloat(form.taxRate),
+        currency: form.currency,
+        notes: form.notes,
+        terms: form.terms,
+        status
+      });
+
+      toast.success(
+        status === 'draft'
+          ? 'Saved as draft!'
+          : 'Invoice created!'
+      );
+
+      navigate('/invoices');
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message || 'Failed'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div style={{ padding: '28px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
