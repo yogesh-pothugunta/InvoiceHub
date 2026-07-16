@@ -32,6 +32,10 @@ export const authAPI = {
   getMe: () => API.get('/auth/me'),
   updateProfile: (data) => API.put('/auth/profile', data),
   changePassword: (data) => API.put('/auth/change-password', data),
+
+  forgotPassword: (data) => API.post('/auth/forgot-password', data),
+  resetPassword: (token, data) => API.post(`/auth/reset-password/${token}`, data),
+  googleLogin: () => window.location.href = 'https://invoicehub-6hhp.onrender.com/api/auth/google',
 };
 
 export const invoiceAPI = {
