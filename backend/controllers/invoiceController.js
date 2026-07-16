@@ -18,9 +18,7 @@ const getInvoices = async (req, res) => {
 
     const query = { user: req.user.id };
 
-    if (status) {
-      query.status = status;
-    }
+    if (status) query.status = status;
 
     if (search) {
       query.$or = [
@@ -52,6 +50,8 @@ const getInvoices = async (req, res) => {
     });
 
   } catch (error) {
+    console.error('GET INVOICES ERROR:', error);
+
     res.status(500).json({
       success: false,
       message: error.message
@@ -84,6 +84,8 @@ const getInvoice = async (req, res) => {
     });
 
   } catch (error) {
+    console.error('GET INVOICE ERROR:', error);
+
     res.status(500).json({
       success: false,
       message: error.message
@@ -194,6 +196,8 @@ const createInvoice = async (req, res) => {
     });
 
   } catch (error) {
+    console.error('CREATE INVOICE ERROR:', error);
+
     res.status(500).json({
       success: false,
       message: error.message
@@ -277,6 +281,8 @@ const updateInvoice = async (req, res) => {
     });
 
   } catch (error) {
+    console.error('UPDATE INVOICE ERROR:', error);
+
     res.status(500).json({
       success: false,
       message: error.message
@@ -315,6 +321,8 @@ const deleteInvoice = async (req, res) => {
     });
 
   } catch (error) {
+    console.error('DELETE INVOICE ERROR:', error);
+
     res.status(500).json({
       success: false,
       message: error.message
@@ -397,6 +405,8 @@ const updateStatus = async (req, res) => {
     });
 
   } catch (error) {
+    console.error('UPDATE STATUS ERROR:', error);
+
     res.status(500).json({
       success: false,
       message: error.message
@@ -420,9 +430,7 @@ const downloadPDF = async (req, res) => {
       });
     }
 
-    const user = await User.findById(
-      req.user.id
-    );
+    const user = await User.findById(req.user.id);
 
     const pdfBuffer = await generateInvoicePDF(
       invoice,
@@ -439,9 +447,12 @@ const downloadPDF = async (req, res) => {
     res.end(pdfBuffer);
 
   } catch (error) {
+    console.error('PDF GENERATION ERROR:', error);
+
     res.status(500).json({
       success: false,
-      message: 'PDF generation failed: ' + error.message
+      message:
+        'PDF generation failed: ' + error.message
     });
   }
 };
@@ -450,6 +461,8 @@ const downloadPDF = async (req, res) => {
 // @route POST /api/invoices/:id/send-email
 const sendEmail = async (req, res) => {
   try {
+    console.log('📧 SEND EMAIL STARTED');
+
     const invoice = await Invoice.findOne({
       _id: req.params.id,
       user: req.user.id
@@ -462,18 +475,33 @@ const sendEmail = async (req, res) => {
       });
     }
 
-    const user = await User.findById(
-      req.user.id
-    );
+    console.log('✅ Invoice found');
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    console.log('✅ User found');
 
     const {
       customMessage
-    } = req.body;
+    } = req.body || {};
+
+    console.log('📄 Generating PDF...');
 
     const pdfBuffer = await generateInvoicePDF(
       invoice,
       user
     );
+
+    console.log('✅ PDF generated');
+
+    console.log('📧 Sending email...');
 
     await sendInvoiceEmail(
       invoice,
@@ -481,6 +509,8 @@ const sendEmail = async (req, res) => {
       pdfBuffer,
       customMessage
     );
+
+    console.log('✅ Email sent successfully');
 
     await Invoice.findByIdAndUpdate(
       req.params.id,
@@ -500,11 +530,12 @@ const sendEmail = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('EMAIL ERROR:', error);
+    console.error('❌ EMAIL ERROR:', error);
 
     res.status(500).json({
       success: false,
-      message: 'Email failed: ' + error.message
+      message:
+        'Email failed: ' + error.message
     });
   }
 };
@@ -586,6 +617,8 @@ const exportCSV = async (req, res) => {
     res.send(csv);
 
   } catch (error) {
+    console.error('EXPORT CSV ERROR:', error);
+
     res.status(500).json({
       success: false,
       message: error.message
