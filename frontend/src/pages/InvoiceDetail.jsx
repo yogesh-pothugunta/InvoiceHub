@@ -47,6 +47,46 @@ export default function InvoiceDetail() {
     } catch (err) { toast.error(err.response?.data?.message || 'Email failed'); }
     finally { setSending(false); }
   };
+  const handlePayNow = async () => {
+  try {
+    const res = await paymentAPI.createOrder({ invoiceId: id });
+    const { order, invoice: inv } = res.data;
+
+    const options = {
+      key: process.env.REACT_APP_RAZORPAY_KEY_ID,
+      amount: order.amount,
+      currency: order.currency,
+      name: 'InvoiceHub',
+      description: `Payment for ${inv.invoiceNumber}`,
+      order_id: order.id,
+      handler: async (response) => {
+        try {
+          await paymentAPI.verifyPayment({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            invoiceId: id,
+          });
+          toast.success('Payment successful! Invoice marked as paid! 🎉');
+          const updated = await invoiceAPI.getOne(id);
+          setInvoice(updated.data.data);
+        } catch {
+          toast.error('Payment verification failed');
+        }
+      },
+      prefill: {
+        name: inv.clientSnapshot.name,
+        email: inv.clientSnapshot.email,
+      },
+      theme: { color: '#6366f1' },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Payment failed');
+  }
+};
 
   const handleStatusChange = async (status) => {
     try {
