@@ -42,6 +42,8 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+const paymentRoutes = require('./routes/payments');
+app.use('/api/payments', paymentRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'InvoiceHub API is running!', timestamp: new Date() });
