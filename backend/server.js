@@ -4,6 +4,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const passport = require('./config/passport');
+const session = require('express-session');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
@@ -15,6 +17,14 @@ const app = express();
 
 app.use(helmet());
 app.use(morgan('dev'));
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'secret',
+  resave: false,
+  saveUninitialized: false
+}));
+
+app.use(passport.initialize());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
