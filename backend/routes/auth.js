@@ -174,11 +174,11 @@ router.post('/login', [
 
     const isMatch = await user.comparePassword(password);
 
-if (!isMatch) {
-  return res.status(401).json({
-    message: 'Invalid email or password'
-  });
-}
+    if (!isMatch) {
+      return res.status(401).json({
+        message: 'Invalid email or password'
+      });
+    }
 
     const token = generateToken(user._id);
 
@@ -191,6 +191,97 @@ if (!isMatch) {
         company: user.company
       }
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Google OAuth
+router.get('/google',
+  passport.authenticate('google', { scope: ['profile', 'email'], session: false })
+);
+
+router.get('/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL}/login?error=google` }),
+  (req, res) => {
+    const { token, user } = req.user;
+    const userStr = encodeURIComponent(JSON.stringify({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      company: user.company,
+    }));
+    res.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${token}&user=${userStr}`);
+  }
+);
+
+// Forgot Password
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email required' });
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(404).json({ message: 'No account found with this email' });
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpiry = resetExpiry;
+    await user.save({ validateBeforeSave: false });
+
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.sendgrid.net',
+      port: 587,
+      secure: false,
+      auth: { user: 'apikey', pass: process.env.EMAIL_PASS }
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM,
+      to: email,
+      subject: 'InvoiceHub — Password Reset',
+      html: `
+        <div style="font-family:Inter,Arial,sans-serif;max-width:500px;margin:auto;padding:30px;background:#0d0e18;border-radius:12px;">
+          <h2 style="color:#818cf8;">Reset Your Password 🔐</h2>
+          <p style="color:#94a3b8;">You requested a password reset for your InvoiceHub account.</p>
+          <a href="${resetUrl}" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#7c3aed);color:#fff;border-radius:10px;text-decoration:none;font-weight:500;margin:20px 0;">
+            Reset Password
+          </a>
+          <p style="color:#475569;font-size:12px;">Link expires in 1 hour. If you didn't request this, ignore this email.</p>
+          <p style="color:#334155;font-size:11px;">${resetUrl}</p>
+        </div>
+      `
+    });
+
+    res.json({ success: true, message: 'Password reset email sent!' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Reset Password
+router.post('/reset-password/:token', async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password || password.length < 8) return res.status(400).json({ message: 'Password must be at least 8 characters' });
+
+    const user = await User.findOne({
+      resetPasswordToken: req.params.token,
+      resetPasswordExpiry: { $gt: new Date() }
+    });
+
+    if (!user) return res.status(400).json({ message: 'Invalid or expired reset link' });
+
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpiry = undefined;
+    await user.save();
+
+    res.json({ success: true, message: 'Password reset successful! Please login.' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
