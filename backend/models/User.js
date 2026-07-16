@@ -41,6 +41,7 @@ const userSchema = new mongoose.Schema({
   currency: { type: String, default: '₹ INR' },
   defaultTax: { type: Number, default: 18 },
   isActive: { type: Boolean, default: true },
+  googleId: { type: String, default: '' },
   lastLogin: { type: Date },
 
   // OTP Verification Fields
