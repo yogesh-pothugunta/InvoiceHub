@@ -72,4 +72,11 @@ router.get('/payment/:paymentId', protect, async (req, res) => {
   }
 });
 
+router.get('/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Payments route working'
+  });
+});
+
 module.exports = router;
