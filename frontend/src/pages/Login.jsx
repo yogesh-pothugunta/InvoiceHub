@@ -5,8 +5,6 @@ import { authAPI } from '../utils/api';
 import toast from 'react-hot-toast';
 
 export default function Login() {
-
-export default function Login() {
   const [tab, setTab] = useState('login');
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', password: '', companyName: '' });
