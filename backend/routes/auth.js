@@ -1,3 +1,6 @@
+const passport = require('../config/passport');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
