@@ -38,10 +38,10 @@ const getInvoices = async (req, res) => {
         limit: parseInt(limit)
       }
     });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+ } catch (error) {
+  console.error('EMAIL ERROR:', error);
+  res.status(500).json({ success: false, message: 'Email failed: ' + error.message });
+}
 
 // @route  GET /api/invoices/:id
 const getInvoice = async (req, res) => {
